@@ -1,0 +1,38 @@
+### ==========================================
+### RECURSO: PRODUCTOS
+### ==========================================
+
+### CASO DE ÉXITO: Listar productos paginados (200 OK)
+GET http://localhost:8080/api/productos?page=0&size=5
+
+### CASO DE ÉXITO: Obtener producto existente (200 OK)
+GET http://localhost:8080/api/productos/10
+
+### CASO DE ERROR: Obtener producto que no existe en DummyJSON (404 Not Found)
+GET http://localhost:8080/api/productos/99999
+
+
+### ==========================================
+### RECURSO: FAVORITOS
+### ==========================================
+
+### CASO DE ÉXITO: Crear un nuevo favorito (201 Created)
+POST http://localhost:8080/api/favoritos
+Content-Type: application/json
+
+{
+  "productoId": 5,
+  "nota": "Comprar para el mes que viene"
+}
+
+### CASO DE ERROR: Crear favorito fallando la validación (400 Bad Request)
+# Falla porque la nota está vacía y falta el productoId
+POST http://localhost:8080/api/favoritos
+Content-Type: application/json
+
+{
+  "nota": "   "
+}
+
+### CASO DE ERROR: Buscar un favorito con ID interno inexistente (404 Not Found)
+GET http://localhost:8080/api/favoritos/99

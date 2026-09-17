@@ -65,3 +65,16 @@ curl http://localhost:8080/ping
 - `spring-boot-starter-webmvc` — Spring MVC + Tomcat embebido.
 - `spring-boot-starter-validation` — Bean Validation (`@NotNull`, `@NotBlank`, ...).
 - `springdoc-openapi-starter-webmvc-ui` — Swagger UI / OpenAPI.
+
+
+## Instrucciones para levantar el proyecto
+
+1. Abrir una terminal en la carpeta raíz del proyecto.
+2. Ejecutar el Maven Wrapper para iniciar la aplicación:
+   - **En Windows:** `mvnw.cmd spring-boot:run`
+   - **En Linux / Mac:** `./mvnw spring-boot:run`
+3. La aplicación se iniciará en el puerto `8080`.
+
+## Documentación de la API
+Una vez levantado el proyecto, podés explorar y probar todos los endpoints a través de Swagger UI ingresando a:
+[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
