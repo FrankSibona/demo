@@ -5,15 +5,19 @@ import java.time.LocalDateTime;
 public class Favorito {
     private Long id;
     private Long productoId;
+    private Long listaId;
+   
+
     private String nota;
     private LocalDateTime fechaCreacion;
 
     public Favorito() {
     }
 
-    public Favorito(Long id, Long productoId, String nota) {
+    public Favorito(Long id, Long productoId,Long listaId, String nota) {
         this.id = id;
         this.productoId = productoId;
+        this.listaId = listaId;
         this.nota = nota;
         this.fechaCreacion = LocalDateTime.now();
     }
@@ -47,5 +51,13 @@ public class Favorito {
 
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+    
+     public Long getListaId() {
+        return listaId;
+    }
+
+    public void setListaId(Long listaId) {
+        this.listaId = listaId;
     }
 }
