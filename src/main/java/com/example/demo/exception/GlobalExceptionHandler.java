@@ -63,4 +63,32 @@ public class GlobalExceptionHandler {
         // Devuelve 409 CONFLICT
         return ResponseEntity.status(org.springframework.http.HttpStatus.CONFLICT).body(ex.getMessage());
     }
+
+    @ExceptionHandler(UsuarioYaExisteException.class)
+    public ProblemDetail handleUsuarioYaExiste(UsuarioYaExisteException ex) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problema.setTitle("Conflicto - El usuario ya existe");
+        return problema;
+    }
+
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    public ProblemDetail handleCredencialesInvalidas(CredencialesInvalidasException ex) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problema.setTitle("Credenciales inválidas");
+        return problema;
+    }
+
+    @ExceptionHandler(AccesoDenegadoException.class)
+    public ProblemDetail handleAccesoDenegado(AccesoDenegadoException ex) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problema.setTitle("Acceso denegado");
+        return problema;
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ProblemDetail handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problema.setTitle("Acceso denegado");
+        return problema;
+    }
 }

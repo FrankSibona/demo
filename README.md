@@ -135,3 +135,26 @@ Para ejecutar esta aplicación, se requiere una instancia de PostgreSQL versión
 Puedes iniciar rápidamente un contenedor efímero con el siguiente comando:
 ```bash
 docker run --name postgres-tp2 -e POSTGRES_USER=tu_usuario -e POSTGRES_PASSWORD=tu_password -e POSTGRES_DB=tp2_db -p 5432:5432 -d postgres:16.15
+```
+
+## 8. Autorización y Propiedad de Recursos (Seguridad)
+
+### Dónde vive la regla de autorización
+Las reglas de autorización, pertenencia y validación de rol (`ADMIN` vs `USER`) viven en la **capa de servicio (`ListaService`)**.
+
+### ¿Por qué se eligió implementarla en el Service y no en el Controller?
+
+1. **Separación clara de responsabilidades (SoC):**
+   Los controladores (`@RestController`) tienen como única responsabilidad mediar entre el protocolo HTTP y la aplicación: deserializar el cuerpo del request, extraer parámetros de ruta o consulta, y mapear el resultado a códigos de estado HTTP. La regla que dictamina quién es dueño de un recurso y si tiene permiso para operar sobre él es **lógica de negocio fundamental**, y por lo tanto pertenece a la capa de servicio.
+
+2. **Seguridad robusta y prevención de bypass:**
+   Si la autorización se implementara en el Controller, cualquier otro punto de entrada presente o futuro (como jobs programados, consumidores de colas/eventos, tareas batch, o llamados internos entre servicios) tendría que acordarse de reimplementar la validación manualmente. Al ubicarse en `ListaService`, la regla está centralizada y garantizada sin importar cómo o desde dónde se invoque.
+
+3. **Inmutabilidad de la propiedad al crear recursos:**
+   Al crear una lista, el dueño se asigna directamente desde el `UsuarioPrincipal` del `SecurityContextHolder` dentro de `ListaService.crear(lista)`. Esto asegura que el cliente jamás pueda falsear o spoofear el `usuarioId` enviando un ID ajeno en el cuerpo JSON del request.
+
+4. **Distinción semántica entre 404 Not Found y 403 Forbidden:**
+   En el servicio se valida primero la existencia del recurso mediante `listaRepository.findById(id)`. Si el recurso no existe, se arroja `RecursoNoEncontradoException` (HTTP 404). Si el recurso existe pero el usuario autenticado no es el dueño ni posee rol `ADMIN`, se arroja `AccesoDenegadoException` (HTTP 403 Forbidden). Esto evita confundir al cliente entre "el recurso no existe" y "el recurso existe pero no tienes permiso para accederlo".
+
+5. **Testeabilidad:**
+   Permite escribir pruebas unitarias directas, limpias y muy rápidas sobre `ListaService` para simular diferentes usuarios y roles sin requerir el despliegue de infraestructura web ni MockMvc.

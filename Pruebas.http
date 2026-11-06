@@ -36,3 +36,53 @@ Content-Type: application/json
 
 ### CASO DE ERROR: Buscar un favorito con ID interno inexistente (404 Not Found)
 GET http://localhost:8080/api/favoritos/99
+
+
+### ==========================================
+### RECURSO: AUTENTICACIÓN / USUARIOS
+### ==========================================
+
+### CASO DE ÉXITO: Registro de nuevo usuario (201 Created)
+POST http://localhost:8080/api/auth/registro
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "miPasswordSeguro123"
+}
+
+### CASO DE ERROR: Registro con email ya existente (409 Conflict)
+POST http://localhost:8080/api/auth/registro
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "otraPassword456"
+}
+
+### CASO DE ÉXITO: Login con credenciales válidas (200 OK -> devuelve JWT)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "miPasswordSeguro123"
+}
+
+### CASO DE ERROR: Login con contraseña incorrecta (401 Unauthorized)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "passwordErronea"
+}
+
+### CASO DE ERROR: Acceso a endpoint protegido sin token (401 Unauthorized)
+GET http://localhost:8080/api/listas
+
+### CASO DE ÉXITO: Acceso a endpoint protegido con token Bearer (200 OK)
+# Reemplazar <TOKEN_JWT_AQUI> por el token devuelto en /api/auth/login
+GET http://localhost:8080/api/listas
+Authorization: Bearer <TOKEN_JWT_AQUI>
+
