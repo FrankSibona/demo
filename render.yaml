@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: tp-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: tp-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: tp-postgres
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: tp-postgres
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: tp-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: tp-postgres
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+
+databases:
+  - name: tp-postgres
+    databaseName: tp2_db
+    user: usuario
+    plan: free
+    region: oregon
