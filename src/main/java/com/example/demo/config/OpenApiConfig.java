@@ -20,10 +20,11 @@ public class OpenApiConfig {
     public OpenAPI demoOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("TP1 · Catálogo y Favoritos")
-                        .description("Catálogo de productos (consumo de una API externa) + favoritos "
-                                + "(CRUD propio en memoria). Práctico de introducción a Spring Boot.")
-                        .version("v1"))
+                        .title("TP3 · Autenticación JWT y Autorización de Recursos")
+                        .description("API REST con catálogo de productos, favoritos y listas. "
+                                + "Incluye autenticación mediante JWT (JSON Web Tokens), registro de usuarios, "
+                                + "y autorización basada en roles (USER, ADMIN) y propiedad de recursos.")
+                        .version("v3"))
                 .addSecurityItem(new SecurityRequirement().addList("BearerAuth"))
                 .components(new Components()
                         .addSecuritySchemes("BearerAuth", new SecurityScheme()

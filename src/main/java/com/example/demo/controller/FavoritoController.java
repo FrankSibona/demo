@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/favoritos")
-@Tag(name = "Favoritos", description = "CRUD de productos favoritos del usuario")
+@Tag(name = "Favoritos", description = "CRUD de productos favoritos. Requiere autenticación (JWT Bearer Token).")
 public class FavoritoController {
 
     private final FavoritoService favoritoService;
@@ -24,26 +24,26 @@ public class FavoritoController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear un favorito")
+    @Operation(summary = "Crear un favorito", description = "Requiere autenticación (Bearer Token).")
     public ResponseEntity<FavoritoResponseDTO> crearFavorito(@Valid @RequestBody FavoritoRequestDTO request) {
         FavoritoResponseDTO response = favoritoService.guardarFavorito(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos los favoritos")
+    @Operation(summary = "Listar todos los favoritos", description = "Requiere autenticación (Bearer Token).")
     public ResponseEntity<List<FavoritoResponseDTO>> listarFavoritos() {
         return ResponseEntity.ok(favoritoService.obtenerTodos());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un favorito por ID")
+    @Operation(summary = "Obtener un favorito por ID", description = "Requiere autenticación (Bearer Token).")
     public ResponseEntity<FavoritoResponseDTO> obtenerFavorito(@PathVariable Long id) {
         return ResponseEntity.ok(favoritoService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar un favorito existente")
+    @Operation(summary = "Actualizar un favorito existente", description = "Requiere autenticación (Bearer Token).")
     public ResponseEntity<FavoritoResponseDTO> actualizarFavorito(
             @PathVariable Long id, 
             @Valid @RequestBody FavoritoRequestDTO request) {
@@ -52,7 +52,7 @@ public class FavoritoController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar un favorito")
+    @Operation(summary = "Eliminar un favorito", description = "Requiere autenticación (Bearer Token).")
     public ResponseEntity<Void> eliminarFavorito(@PathVariable Long id) {
         favoritoService.eliminarFavorito(id);
         return ResponseEntity.noContent().build(); 

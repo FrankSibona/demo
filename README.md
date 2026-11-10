@@ -158,3 +158,68 @@ Las reglas de autorización, pertenencia y validación de rol (`ADMIN` vs `USER`
 
 5. **Testeabilidad:**
    Permite escribir pruebas unitarias directas, limpias y muy rápidas sobre `ListaService` para simular diferentes usuarios y roles sin requerir el despliegue de infraestructura web ni MockMvc.
+
+## 9. Suite de Tests y Ejecución
+
+La arquitectura de pruebas está dividida de forma estricta entre pruebas unitarias e integración:
+
+- **Pruebas Unitarias (`*Test`):**
+  - Ejecutadas por **Maven Surefire Plugin**.
+  - Aisladas y sin dependencias externas (usan mocks con Mockito).
+  - Verifican la lógica pura de negocio: `UsuarioServiceImplTest` valida que las contraseñas nunca se persistan en texto plano y que se asigne el rol `USER`; `ListaServiceImplTest` valida la asignación automática del usuario autenticado y la protección de listas ajenas.
+  - Comando:
+    ```bash
+    ./mvnw test
+    ```
+
+- **Pruebas de Integración (`*IT`):**
+  - Ejecutadas por **Maven Failsafe Plugin**.
+  - Levantan un contenedor real de PostgreSQL 16 mediante **Testcontainers**, aplican todas las migraciones Flyway (`V1` a `V6`) sobre una base limpia y ejecutan solicitudes HTTP reales vía `MockMvc`.
+  - Casos cubiertos en `ListaControllerIT`:
+    - `login_credencialesValidas_retornaTokenOk` (200 con JWT).
+    - `login_credencialesInvalidas_retornaUnauthorized` (401).
+    - `obtenerLista_usuarioDuenio_retornaOk` (200).
+    - `obtenerLista_usuarioAjeno_retornaForbidden` (403 Forbidden).
+    - `listarListas_sinToken_retornaUnauthorized` (401).
+    - `obtenerLista_adminListaAjena_retornaOk` (200 con rol ADMIN).
+  - Comando:
+    ```bash
+    ./mvnw verify
+    ```
+  *(Nota: `./mvnw verify` ejecuta primero los tests unitarios y luego los tests de integración).*
+
+## 10. Integración Continua (CI con GitHub Actions)
+
+El proyecto cuenta con un pipeline de CI automatizado definido en [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+- **Disparadores:** Se ejecuta en cada `push` a cualquier rama y en cada `pull_request`.
+- **Entorno:** Corre en una máquina virtual limpia `ubuntu-latest` con JDK 25 (Temurin).
+- **Ejecución:** Corre `./mvnw verify --no-transfer-progress`, garantizando la ejecución de Surefire (`*Test`), Failsafe (`*IT`), y Testcontainers (Docker en el runner).
+- **Cómo leer el resultado:**
+  - En la pestaña **Actions** de GitHub ([https://github.com/FrankSibona/demo/actions](https://github.com/FrankSibona/demo/actions)):
+    - **Check verde (Success):** El build compiló, los 37+ tests unitarios y los tests de integración con PostgreSQL pasaron sin fallos.
+    - **Cruz roja (Failure):** Algún test unitario o de integración falló, o hubo un error de compilación. Al hacer clic en el run y en el job `Build & Verify`, se despliega el log exacto con la aserción que falló.
+  - **Ejecución de referencia exitosa:** [Workflow Run #42872004860](https://github.com/FrankSibona/demo/actions/runs/42872004860).
+
+## 11. Despliegue en la Nube (Render + PostgreSQL)
+
+El despliegue en producción fue implementado sobre la plataforma **Render**, desacoplando toda configuración sensible a través de variables de entorno:
+
+### Arquitectura de Despliegue
+- **Contenedor Docker Multi-etapa (`Dockerfile`):**
+  - Etapa 1 (`eclipse-temurin:25-jdk-noble`): compila el artefacto JAR empaquetado.
+  - Etapa 2 (`eclipse-temurin:25-jre-noble`): runtime ligero ejecutado bajo un usuario sin privilegios de root (`spring:spring`).
+- **Base de Datos:** Instancia gestionada de PostgreSQL 16 en Render (`tp-postgres`).
+- **Variables de Entorno Configuradas:**
+  - `PORT`: Puerto asignado por Render (por defecto mapeado a `8080`).
+  - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`: Credenciales de conexión inyectadas a `spring.datasource.url`.
+  - `JWT_SECRET`: Clave simétrica de 256 bits para la firma de tokens JWT.
+  - `JWT_EXPIRATION`: Tiempo de expiración del token (86400000 ms = 24h).
+
+### Pasos Seguidos para el Despliegue
+1. Se definió el archivo de infraestructura como código [`render.yaml`](render.yaml) que automatiza la vinculación entre la base de datos y la API.
+2. Se conectó el repositorio `FrankSibona/demo` en [Render Dashboard](https://dashboard.render.com).
+3. Se aprovisionó el servicio mediante **Blueprint** o creando el Web Service (Docker) y PostgreSQL.
+4. Al arrancar, Flyway ejecutó automáticamente las 6 migraciones (`V1` a `V6`) en la base de datos remota.
+5. Se verificó la disponibilidad pública mediante `GET /health` (`{"status":"ok"}`) y el correcto funcionamiento del filtro de seguridad JWT (respondiendo `401 Unauthorized` al consultar `/api/listas` sin token y `200 OK` al enviar `Authorization: Bearer <token>`).
+
